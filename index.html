@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calculadora de Extubação – Estimativa de Sucesso</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --azul-marinho: #0d47a1;
+      --azul-claro: #e3f2fd;
+      --verde-sucesso: #047857;
+      --amarelo-alerta: #d97706;
+      --vermelho-risco: #dc2626;
+      --cinza-fundo: #f5f5f5;
+      --cinza-borda: #d1d5db;
+      --texto-principal: #1f2933;
+      --texto-secundario: #4b5563;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 16px;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, var(--azul-claro), #ffffff);
+      color: var(--texto-principal);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+      padding: 28px 24px 24px;
+      margin-bottom: 24px;
+    }
+
+    .header {
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--azul-claro);
+      padding-bottom: 16px;
+    }
+
+    .title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--azul-marinho);
+      margin: 0 0 6px 0;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--texto-secundario);
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .modulo {
+      margin-top: 24px;
+      padding: 16px;
+      background: #fafbfc;
+      border-radius: 12px;
+      border-left: 4px solid var(--azul-marinho);
+    }
+
+    .modulo-titulo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--azul-marinho);
+      margin: 0 0 14px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modulo-titulo::before {
+      content: "▸";
+      font-size: 1.4rem;
+    }
+
+    .field-group {
+      margin-bottom: 14px;
+    }
+
+    .field-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--texto-principal);
+    }
+
+    .label-hint {
+      font-size: 0.75rem;
+      color: var(--texto-secundario);
+      font-weight: 400;
+      margin-left: 2px;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1.5px solid var(--cinza-borda);
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--azul-marinho);
+      box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.1);
+      background: #ffffff;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 8px;
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--azul-marinho);
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 16px;
+      margin-top: 6px;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .radio-option input[type="radio"] {
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--azul-marinho);
+    }
+
+    .radio-option label {
+      margin: 0;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .inline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--texto-secundario);
+      margin-top: 3px;
+      font-style: italic;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      justify-content: center;
+    }
+
+    .btn {
+      flex: 1;
+      max-width: 200px;
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--azul-marinho);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(13, 71, 161, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(13, 71, 161, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: var(--azul-marinho);
+      border: 1.5px solid var(--cinza-borda);
+    }
+
+    .btn-secondary:hover {
+      background: var(--azul-claro);
+    }
+
+    .resultado {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 12px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .resultado.sucesso {
+      background: #ecfdf5;
+      border-left: 4px solid var(--verde-sucesso);
+    }
+
+    .resultado.alerta {
+      background: #fffbeb;
+      border-left: 4px solid var(--amarelo-alerta);
+    }
+
+    .resultado.risco {
+      background: #fef2f2;
+      border-left: 4px solid var(--vermelho-risco);
+    }
+
+    .resultado-titulo {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .resultado.sucesso .resultado-titulo {
+      color: var(--verde-sucesso);
+    }
+
+    .resultado.alerta .resultado-titulo {
+      color: var(--amarelo-alerta);
+    }
+
+    .resultado.risco .resultado-titulo {
+      color: var(--vermelho-risco);
+    }
+
+    .resultado-conteudo {
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .metrica {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 8px 0;
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+    }
+
+    .metrica:last-child {
+      border-bottom: none;
+    }
+
+    .metrica-nome {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--texto-principal);
+    }
+
+    .metrica-valor {
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .valor-positivo {
+      color: var(--verde-sucesso);
+    }
+
+    .valor-negativo {
+      color: var(--vermelho-risco);
+    }
+
+    .valor-neutro {
+      color: var(--amarelo-alerta);
+    }
+
+    .secao-recomendacoes {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed rgba(0, 0, 0, 0.1);
+    }
+
+    .recomendacoes-titulo {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      color: var(--texto-principal);
+    }
+
+    .recomendacoes-lista {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .recomendacoes-lista li {
+      margin-bottom: 6px;
+    }
+
+    .score-box {
+      background: linear-gradient(135deg, var(--azul-marinho), #1e40af);
+      color: #ffffff;
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+      margin: 12px 0;
+    }
+
+    .score-label {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      margin-bottom: 4px;
+    }
+
+    .score-valor {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .score-percentual {
+      font-size: 0.9rem;
+      margin-top: 4px;
+      opacity: 0.9;
+    }
+
+    details {
+      margin-top: 16px;
+      font-size: 0.85rem;
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--cinza-borda);
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--azul-marinho);
+      list-style: none;
+      user-select: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::before {
+      content: "▸ ";
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    details[open] summary::before {
+      content: "▾ ";
+    }
+
+    .detalhes-conteudo {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--cinza-borda);
+      color: var(--texto-secundario);
+      line-height: 1.5;
+    }
+
+    .footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--cinza-borda);
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--texto-secundario);
+      opacity: 0.6;
+    }
+
+    .aviso-legal {
+      background: #fef3c7;
+      border-left: 4px solid var(--amarelo-alerta);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: #92400e;
+      margin-top: 16px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px 16px 16px;
+        border-radius: 12px;
+      }
+
+      .title {
+        font-size: 1.4rem;
+      }
+
+      .inline-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-row {
+        flex-direction: column;
+      }
+
+      .btn {
+        max-width: 100%;
+      }
+
+      .radio-group {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+
+      .container {
+        box-shadow: none;
+        border-radius: 0;
+        max-width: 100%;
+      }
+
+      .btn-row {
+        display: none !important;
+      }
+
+      details {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="title">Calculadora de Extubação</h1>
+      <p class="subtitle">
+        Estimativa de sucesso baseada em critérios clínicos do Teste de Respiração Espontânea (TRE) 
+        e parâmetros do Teste do Cuff Leak. Ferramenta de apoio para decisão clínica multidisciplinar.
+      </p>
+    </header>
+
+    <main>
+      <form id="calcForm">
+        <!-- MÓDULO 1: CONTEXTO CLÍNICO -->
+        <div class="modulo">
+          <h2 class="modulo-titulo">Contexto Clínico</h2>
+
+          <div class="field-group">
+            <label>Melhora clínica do motivo da intubação?</label>
+            <div class="radio-group">
+              <div class="radio-option">
+                <input type="radio" id="melhora_sim" name="melhora" value="sim" checked />
+                <label for="melhora_sim">Sim</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="melhora_nao" name="melhora" value="nao" />
+                <label for="melhora_nao">Não</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Nível de consciência</label>
+            <select id="consciencia">
+              <option value="">Selecione...</option>
+              <option value="alerta">Alerta / Orientado</option>
+              <option value="sonolento">Sonolento mas responsivo</option>
+              <option value="confuso">Confuso / Desorientado</option>
+              <option value="sedado">Sedado</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- MÓDULO 2: PARÂMETROS VENTILATÓRIOS E HEMODINÂMICOS -->
+        <div class="modulo">
+          <h2 class="modulo-titulo">Parâmetros Ventilatórios e Hemodinâmicos</h2>
+
+          <div class="inline-grid">
+            <div class="field-group">
+              <label>FiO₂ (%)<span class="label-hint">Fração inspirada de oxigênio</span></label>
+              <input type="number" id="fio2" min="21" max="100" step="1" placeholder="ex.: 40" />
+              <div class="hint">Ideal ≤ 40%</div>
+            </div>
+            <div class="field-group">
+              <label>PEEP (cmH₂O)<span class="label-hint">Pressão positiva ao final da expiração</span></label>
+              <input type="number" id="peep" min="0" max="30" step="0.5" placeholder="ex.: 5" />
+              <div class="hint">Ideal ≤ 8 cmH₂O</div>
+            </div>
+          </div>
+
+          <div class="inline-grid">
+            <div class="field-group">
+              <label>SpO₂ (%)<span class="label-hint">Saturação de oxigênio</span></label>
+              <input type="number" id="spo2" min="0" max="100" step="1" placeholder="ex.: 95" />
+              <div class="hint">Ideal > 90%</div>
+            </div>
+            <div class="field-group">
+              <label>Frequência Respiratória (irpm)</label>
+              <input type="number" id="rr" min="0" max="100" step="1" placeholder="ex.: 22" />
+              <div class="hint">Ideal < 35 irpm</div>
+            </div>
+          </div>
+
+          <div class="inline-grid">
+            <div class="field-group">
+              <label>Frequência Cardíaca (bpm)</label>
+              <input type="number" id="fc" min="0" max="200" step="1" placeholder="ex.: 95" />
+              <div class="hint">Ideal < 140 bpm</div>
+            </div>
+            <div class="field-group">
+              <label>Pressão Arterial Sistólica (mmHg)</label>
+              <input type="number" id="pas" min="0" max="300" step="1" placeholder="ex.: 120" />
+              <div class="hint">Ideal < 180 mmHg</div>
+            </div>
+          </div>
+
+          <div class="inline-grid">
+            <div class="field-group">
+              <label>Pressão Arterial Diastólica (mmHg)</label>
+              <input type="number" id="pad" min="0" max="200" step="1" placeholder="ex.: 80" />
+              <div class="hint">Ideal < 90 mmHg</div>
+            </div>
+            <div class="field-group">
+              <label>Pressão de Suporte (cmH₂O)</label>
+              <input type="number" id="ps" min="0" max="30" step="0.5" placeholder="ex.: 7" />
+              <div class="hint">Ideal 5-7 cmH₂O</div>
+            </div>
+          </div>
+
+          <div class="checkbox-label">
+            <input type="checkbox" id="vasoativo" />
+            <label for="vasoativo">Uso de drogas vasoativas em altas doses</label>
+          </div>
+
+          <div class="checkbox-label">
+            <input type="checkbox" id="sedacao" />
+            <label for="sedacao">Necessidade de sedação contínua</label>
+          </div>
+        </div>
+
+        <!-- MÓDULO 3: TESTE DE RESPIRAÇÃO ESPONTÂNEA (TRE) -->
+        <div class="modulo">
+          <h2 class="modulo-titulo">Avaliação do Teste de Respiração Espontânea (TRE)</h2>
+
+          <div class="checkbox-label">
+            <input type="checkbox" id="tre_tolerancia" />
+            <label for="tre_tolerancia">Paciente tolerou bem o TRE (sem sinais de intolerância)</label>
+          </div>
+
+          <div class="checkbox-label">
+            <input type="checkbox" id="tre_esforco" />
+            <label for="tre_esforco">Ausência de sinais de aumento do trabalho respiratório</label>
+          </div>
+
+          <div class="checkbox-label">
+            <input type="checkbox" id="tre_desconforto" />
+            <label for="tre_desconforto">Sem sinais de desconforto ou ansiedade durante TRE</label>
+          </div>
+
+          <div class="checkbox-label">
+            <input type="checkbox" id="tre_sincronia" />
+            <label for="tre_sincronia">Boa sincronia paciente-ventilador</label>
+          </div>
+        </div>
+
+        <!-- MÓDULO 4: TESTE DO CUFF LEAK -->
+        <div class="modulo">
+          <h2 class="modulo-titulo">Teste do Cuff Leak (Cartão Branco)</h2>
+
+          <div class="inline-grid">
+            <div class="field-group">
+              <label>Volume Programado (mL)<span class="label-hint">Volume corrente programado</span></label>
+              <input type="number" id="vol_programado" min="0" step="10" placeholder="ex.: 500" />
+            </div>
+            <div class="field-group">
+              <label>Volume Inspirado (mL)<span class="label-hint">Com cuff insuflado</span></label>
+              <input type="number" id="vol_inspirado" min="0" step="10" placeholder="ex.: 480" />
+            </div>
+          </div>
+
+          <div class="inline-grid">
+            <div class="field-group">
+              <label>Volume Expirado (mL)<span class="label-hint">Após desinsuflar cuff</span></label>
+              <input type="number" id="vol_expirado" min="0" step="10" placeholder="ex.: 360" />
+            </div>
+            <div class="field-group">
+              <label>Pressão do Cuff (cmH₂O)<span class="label-hint">Opcional</span></label>
+              <input type="number" id="pressao_cuff" min="0" max="50" step="1" placeholder="ex.: 25" />
+            </div>
+          </div>
+
+          <div class="aviso-legal">
+            <strong>Nota:</strong> Preencha os volumes para cálculo automático do leak. Volume perdido ≥ 110 mL ou > 12% indica leak adequado.
+          </div>
+        </div>
+
+        <!-- BOTÕES DE AÇÃO -->
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" onclick="analisarExtubacao()">Analisar Extubação</button>
+          <button type="button" class="btn btn-secondary" onclick="limparFormulario()">Limpar</button>
+        </div>
+      </form>
+
+      <!-- RESULTADO -->
+      <div id="resultado" class="resultado"></div>
+    </main>
+
+    <footer class="footer">
+      Desenvolvido por: Gabriela Canguçu | Coordenação de Fisioterapia | Baseado em diretrizes AMIB/SBPT
+    </footer>
+  </div>
+
+  <script>
+    function analisarExtubacao() {
+      try {
+        // Coleta de valores
+        const melhora = document.querySelector('input[name="melhora"]:checked').value;
+        const consciencia = document.getElementById('consciencia').value;
+        const fio2 = parseFloat(document.getElementById('fio2').value) || 0;
+        const peep = parseFloat(document.getElementById('peep').value) || 0;
+        const spo2 = parseFloat(document.getElementById('spo2').value) || 0;
+        const rr = parseFloat(document.getElementById('rr').value) || 0;
+        const fc = parseFloat(document.getElementById('fc').value) || 0;
+        const pas = parseFloat(document.getElementById('pas').value) || 0;
+        const pad = parseFloat(document.getElementById('pad').value) || 0;
+        const ps = parseFloat(document.getElementById('ps').value) || 0;
+        const vasoativo = document.getElementById('vasoativo').checked;
+        const sedacao = document.getElementById('sedacao').checked;
+
+        const tre_tolerancia = document.getElementById('tre_tolerancia').checked;
+        const tre_esforco = document.getElementById('tre_esforco').checked;
+        const tre_desconforto = document.getElementById('tre_desconforto').checked;
+        const tre_sincronia = document.getElementById('tre_sincronia').checked;
+
+        const vol_programado = parseFloat(document.getElementById('vol_programado').value) || 0;
+        const vol_inspirado = parseFloat(document.getElementById('vol_inspirado').value) || 0;
+        const vol_expirado = parseFloat(document.getElementById('vol_expirado').value) || 0;
+
+        // Cálculos
+        let score = 0;
+        let maxScore = 0;
+        let detalhes = [];
+
+        // 1. AVALIAÇÃO DE CRITÉRIOS CLÍNICOS
+        maxScore += 30;
+
+        if (melhora === 'sim') {
+          score += 5;
+          detalhes.push({ tipo: 'positivo', texto: 'Melhora clínica da causa da intubação' });
+        } else {
+          detalhes.push({ tipo: 'negativo', texto: 'Sem melhora clínica documentada' });
+        }
+
+        if (consciencia === 'alerta') {
+          score += 5;
+          detalhes.push({ tipo: 'positivo', texto: 'Nível de consciência adequado (alerta)' });
+        } else if (consciencia === 'sonolento') {
+          score += 2;
+          detalhes.push({ tipo: 'neutro', texto: 'Nível de consciência parcialmente comprometido' });
+        } else if (consciencia !== '') {
+          detalhes.push({ tipo: 'negativo', texto: 'Nível de consciência inadequado para extubação' });
+        }
+
+        // Oxigenação
+        if (spo2 >= 90) {
+          score += 5;
+          detalhes.push({ tipo: 'positivo', texto: 'SpO₂ adequada (' + spo2 + '%)' });
+        } else if (spo2 > 0) {
+          detalhes.push({ tipo: 'negativo', texto: 'SpO₂ baixa (' + spo2 + '%)' });
+        }
+
+        if (fio2 <= 40) {
+          score += 5;
+          detalhes.push({ tipo: 'positivo', texto: 'FiO₂ adequada (' + fio2 + '%)' });
+        } else {
+          detalhes.push({ tipo: 'negativo', texto: 'FiO₂ elevada (' + fio2 + '%)' });
+        }
+
+        if (peep <= 8) {
+          score += 5;
+          detalhes.push({ tipo: 'positivo', texto: 'PEEP adequada (' + peep + ' cmH₂O)' });
+        } else {
+          detalhes.push({ tipo: 'negativo', texto: 'PEEP elevada (' + peep + ' cmH₂O)' });
+        }
+
+        // 2. AVALIAÇÃO HEMODINÂMICA E RESPIRATÓRIA
+        maxScore += 25;
+
+        if (rr < 35 && rr > 0) {
+          score += 5;
+          detalhes.push({ tipo: 'positivo', texto: 'Frequência respiratória adequada (' + rr + ' irpm)' });
+        } else if (rr >= 35) {
+          detalhes.push({ tipo: 'negativo', texto: 'Frequência respiratória elevada (' + rr + ' irpm)' });
+        }
+
+        if (fc < 140 && fc > 0) {
+          score += 5;
+          detalhes.push({ tipo: 'positivo', texto: 'Frequência cardíaca adequada (' + fc + ' bpm)' });
+        } else if (fc >= 140) {
+          detalhes.push({ tipo: 'negativo', texto: 'Frequência cardíaca elevada (' + fc + ' bpm)' });
+        }
+
+        if (pas < 180 && pas > 0) {
+          score += 5;
+          detalhes.push({ tipo: 'positivo', texto: 'Pressão arterial sistólica adequada (' + pas + ' mmHg)' });
+        } else if (pas >= 180) {
+          detalhes.push({ tipo: 'negativo', texto: 'Pressão arterial sistólica elevada (' + pas + ' mmHg)' });
+        }
+
+        if (pad < 90 && pad > 0) {
+          score += 5;
+          detalhes.push({ tipo: 'positivo', texto: 'Pressão arterial diastólica adequada (' + pad + ' mmHg)' });
+        } else if (pad >= 90) {
+          detalhes.push({ tipo: 'negativo', texto: 'Pressão arterial diastólica elevada (' + pad + ' mmHg)' });
+        }
+
+        if (!vasoativo) {
+          score += 5;
+          detalhes.push({ tipo: 'positivo', texto: 'Sem necessidade de altas doses de vasoativos' });
+        } else {
+          detalhes.push({ tipo: 'negativo', texto: 'Uso de drogas vasoativas em altas doses' });
+        }
+
+        // 3. AVALIAÇÃO DO TRE
+        maxScore += 25;
+
+        if (tre_tolerancia) {
+          score += 8;
+          detalhes.push({ tipo: 'positivo', texto: 'Boa tolerância ao TRE' });
+        } else {
+          detalhes.push({ tipo: 'negativo', texto: 'Intolerância ao TRE documentada' });
+        }
+
+        if (tre_esforco) {
+          score += 6;
+          detalhes.push({ tipo: 'positivo', texto: 'Ausência de aumento do trabalho respiratório' });
+        }
+
+        if (tre_desconforto) {
+          score += 6;
+          detalhes.push({ tipo: 'positivo', texto: 'Sem sinais de desconforto ou ansiedade' });
+        }
+
+        if (tre_sincronia) {
+          score += 5;
+          detalhes.push({ tipo: 'positivo', texto: 'Boa sincronia paciente-ventilador' });
+        }
+
+        // 4. AVALIAÇÃO DO CUFF LEAK
+        maxScore += 20;
+        let cuffLeakStatus = '';
+        let volumePerdido = 0;
+        let percentualPerdido = 0;
+
+        if (vol_inspirado > 0 && vol_expirado > 0) {
+          volumePerdido = vol_inspirado - vol_expirado;
+          percentualPerdido = (volumePerdido / vol_inspirado) * 100;
+
+          if (volumePerdido >= 110 || percentualPerdido > 12) {
+            score += 20;
+            cuffLeakStatus = 'adequado';
+            detalhes.push({ 
+              tipo: 'positivo', 
+              texto: 'Cuff leak adequado (' + volumePerdido.toFixed(0) + ' mL, ' + percentualPerdido.toFixed(1) + '%)' 
+            });
+          } else {
+            cuffLeakStatus = 'reduzido';
+            detalhes.push({ 
+              tipo: 'negativo', 
+              texto: 'Cuff leak reduzido (' + volumePerdido.toFixed(0) + ' mL, ' + percentualPerdido.toFixed(1) + '%) - Risco de edema laríngeo' 
+            });
+          }
+        }
+
+        // Cálculo de percentual de sucesso
+        const percentualSucesso = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+
+        // Determinação de risco
+        let nivelRisco = 'risco';
+        let icone = '⚠️';
+        let titulo = 'Risco Moderado a Alto';
+
+        if (percentualSucesso >= 80) {
+          nivelRisco = 'sucesso';
+          icone = '✓';
+          titulo = 'Estimativa Favorável para Extubação';
+        } else if (percentualSucesso >= 60) {
+          nivelRisco = 'alerta';
+          icone = '⚠';
+          titulo = 'Estimativa Intermediária - Avaliação Clínica Recomendada';
+        }
+
+        // Construir HTML do resultado
+        let html = '<div class="resultado-titulo">' + icone + ' ' + titulo + '</div>';
+        
+        html += '<div class="score-box">';
+        html += '<div class="score-label">Estimativa de Sucesso</div>';
+        html += '<div class="score-valor">' + percentualSucesso + '%</div>';
+        html += '<div class="score-percentual">Pontuação: ' + score + '/' + maxScore + ' pontos</div>';
+        html += '</div>';
+
+        html += '<div class="resultado-conteudo">';
+        html += '<div style="margin-bottom: 12px;"><strong>Análise Detalhada:</strong></div>';
+
+        // Agrupa detalhes por tipo
+        const positivos = detalhes.filter(d => d.tipo === 'positivo');
+        const negativos = detalhes.filter(d => d.tipo === 'negativo');
+        const neutros = detalhes.filter(d => d.tipo === 'neutro');
+
+        if (positivos.length > 0) {
+          html += '<div style="margin-bottom: 10px;"><strong style="color: var(--verde-sucesso);">✓ Fatores Favoráveis:</strong><ul style="margin: 6px 0; padding-left: 20px;">';
+          positivos.forEach(d => {
+            html += '<li style="margin-bottom: 4px;">' + d.texto + '</li>';
+          });
+          html += '</ul></div>';
+        }
+
+        if (negativos.length > 0) {
+          html += '<div style="margin-bottom: 10px;"><strong style="color: var(--vermelho-risco);">✗ Fatores de Risco:</strong><ul style="margin: 6px 0; padding-left: 20px;">';
+          negativos.forEach(d => {
+            html += '<li style="margin-bottom: 4px;">' + d.texto + '</li>';
+          });
+          html += '</ul></div>';
+        }
+
+        if (neutros.length > 0) {
+          html += '<div style="margin-bottom: 10px;"><strong style="color: var(--amarelo-alerta);">⚠ Fatores Neutros:</strong><ul style="margin: 6px 0; padding-left: 20px;">';
+          neutros.forEach(d => {
+            html += '<li style="margin-bottom: 4px;">' + d.texto + '</li>';
+          });
+          html += '</ul></div>';
+        }
+
+        // Recomendações
+        html += '<div class="secao-recomendacoes">';
+        html += '<div class="recomendacoes-titulo">Recomendações Clínicas Baseadas em Evidências:</div>';
+        html += '<ul class="recomendacoes-lista">';
+
+        if (percentualSucesso >= 80) {
+          html += '<li><strong>Proceder com extubação</strong> sob supervisão multidisciplinar com monitorização intensiva (AMIB/SBPT).</li>';
+          html += '<li>Preparar suporte pós-extubação: VNI, CNAF ou oxigenoterapia conforme necessário.</li>';
+          html += '<li>Manter materiais de reintubação à beira do leito durante e após o procedimento.</li>';
+          html += '<li>Monitorização contínua por 48 horas pós-extubação para detecção precoce de falha.</li>';
+          if (cuffLeakStatus === 'reduzido') {
+            html += '<li><strong>Considerar corticosteroide profilático</strong> (ex: dexametasona 4-8 mg IV) para reduzir risco de edema laríngeo pós-extubação.</li>';
+          }
+        } else if (percentualSucesso >= 60) {
+          html += '<li><strong>Avaliação multidisciplinar recomendada</strong> antes de proceder com extubação (fisioterapeuta, médico, enfermagem).</li>';
+          html += '<li>Otimizar parâmetros ventilatórios e hemodinâmicos conforme possível antes de novo TRE.</li>';
+          html += '<li>Considerar novo TRE em 24 horas após correção de instabilidades.</li>';
+          html += '<li>Se optar por extubação, aumentar monitorização e ter suporte pós-extubação disponível.</li>';
+          if (cuffLeakStatus === 'reduzido') {
+            html += '<li><strong>Corticosteroide profilático recomendado</strong> para reduzir risco de obstrução laríngea pós-extubação.</li>';
+          }
+        } else {
+          html += '<li><strong>Adiar extubação</strong> e otimizar condições clínicas do paciente.</li>';
+          html += '<li>Revisar causa da intolerância ao TRE (se aplicável) e ajustar estratégia ventilatória.</li>';
+          html += '<li>Corrigir instabilidades hemodinâmicas (pressão, frequência cardíaca) e respiratórias.</li>';
+          html += '<li>Considerar sedação adequada e repouso ventilatório por 24-48 horas.</li>';
+          html += '<li>Repetir avaliação e novo TRE em 24-48 horas após otimização.</li>';
+          if (cuffLeakStatus === 'reduzido') {
+            html += '<li><strong>Risco significativo de edema laríngeo</strong> - Considerar broncoscopia pré-extubação se houver decisão de extubar.</li>';
+          }
+        }
+
+        html += '</ul></div>';
+
+        // Detalhes expandíveis
+        html += '<details>';
+        html += '<summary>Critérios de Sucesso e Falha no TRE (Diretrizes AMIB)</summary>';
+        html += '<div class="detalhes-conteudo">';
+        html += '<strong>Critérios de Sucesso no TRE:</strong>';
+        html += '<ul style="margin: 6px 0 12px 20px; padding: 0;">';
+        html += '<li>Frequência respiratória &lt; 35 respirações/minuto</li>';
+        html += '<li>Frequência cardíaca &lt; 140 batimentos/minuto</li>';
+        html += '<li>Saturação arterial de oxigênio (SpO₂) &gt; 90%</li>';
+        html += '<li>Ausência de sinais de aumento do trabalho respiratório ou sinais de desconforto</li>';
+        html += '<li>Boa tolerância ao teste - teste bem sucedido</li>';
+        html += '</ul>';
+        html += '<strong>Critérios de Falha no TRE:</strong>';
+        html += '<ul style="margin: 6px 0 0 20px; padding: 0;">';
+        html += '<li>Frequência respiratória &gt; 35 respirações/minuto</li>';
+        html += '<li>Uso da musculatura acessória ou movimentos paradoxais</li>';
+        html += '<li>Dispneia ou desconforto durante o teste</li>';
+        html += '<li>Saturação arterial de oxigênio &lt; 90%</li>';
+        html += '<li>Frequência cardíaca &gt; 140/minuto ou aumento sustentado de 20% na frequência cardíaca</li>';
+        html += '<li>Pressão arterial sistólica &gt; 180 mmHg ou diastólica &gt; 90 mmHg</li>';
+        html += '<li>Ansiedade, sudorese intensa e alteração do nível de consciência</li>';
+        html += '</ul>';
+        html += '</div>';
+        html += '</details>';
+
+        // Interpretação do Cuff Leak
+        html += '<details>';
+        html += '<summary>Interpretação do Teste do Cuff Leak (Cartão Branco)</summary>';
+        html += '<div class="detalhes-conteudo">';
+        html += '<strong>Volume Perdido:</strong> ' + (volumePerdido > 0 ? volumePerdido.toFixed(0) + ' mL' : 'Não calculado') + '<br>';
+        html += '<strong>Percentual de Perda:</strong> ' + (percentualPerdido > 0 ? percentualPerdido.toFixed(1) + '%' : 'Não calculado') + '<br><br>';
+        html += '<strong>Interpretação:</strong><br>';
+        if (cuffLeakStatus === 'adequado') {
+          html += '✓ <strong>Leak adequado:</strong> Indica presença de espaço para passagem de ar após extubação. Baixo risco de obstrução laríngea pós-extubação. Paciente apresenta condições favoráveis para extubação quanto à proteção de vias aéreas.';
+        } else if (cuffLeakStatus === 'reduzido') {
+          html += '✗ <strong>Leak reduzido:</strong> Sugere possível edema ou obstrução laríngea. Aumenta risco de falha de extubação. Recomenda-se considerar corticosteroide profilático (dexametasona 4-8 mg IV) e possível avaliação endoscópica pré-extubação.';
+        } else {
+          html += 'Preencha os volumes inspirado e expirado para análise automática do cuff leak.';
+        }
+        html += '</div>';
+        html += '</details>';
+
+        html += '</div>';
+
+        // Exibir resultado
+        const resultadoDiv = document.getElementById('resultado');
+        resultadoDiv.innerHTML = html;
+        resultadoDiv.className = 'resultado ' + nivelRisco;
+        resultadoDiv.style.display = 'block';
+        
+        // Scroll para o resultado
+        setTimeout(() => {
+          resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+
+      } catch (error) {
+        console.error('Erro ao analisar:', error);
+        alert('Erro ao processar a análise. Verifique se todos os campos obrigatórios foram preenchidos.');
+      }
+    }
+
+    function limparFormulario() {
+      document.getElementById('calcForm').reset();
+      document.getElementById('resultado').style.display = 'none';
+      document.getElementById('resultado').innerHTML = '';
+    }
+
+    // Permitir Enter para calcular
+    document.getElementById('calcForm').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        analisarExtubacao();
+      }
+    });
+  </script>
+</body>
+</html>
